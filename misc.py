@@ -41,3 +41,16 @@ def abstract_state(player, points, board, max_size):
     v = np.append(v, w[1-player])
     v = v.clip(0, max_size)
     return build_binary_matrix(v, max_size)
+
+
+def choose(v, n=1) -> np.ndarray:
+    """
+    choose random array index given probability distribution
+    :param v: array
+    :param n: number of output samples
+    :return:
+    """
+    s = sum(v)
+    if not s:
+        raise ValueError('Sum cannot be 0')
+    return np.random.choice(len(v), n, p=v/s)

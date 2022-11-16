@@ -35,6 +35,10 @@ class Game:
     max_size = 18   # numbers higher than this are not distinguished
 
     def __init__(self, agents):
+        """
+
+        :param agents: list of agents; an agent takes as input
+        """
         self.agents = agents
         self.state = None
         self.init_board()
@@ -50,13 +54,13 @@ class Game:
         side_1 += f" {list_to_str(self.state['board'][0], space)}"
         t = max(s, 0)
         t = f"({t})" if t else '(.)'
-        side_1 += f"  {t}   "
+        side_1 += f"  {t:>4}   "
 
         side_2 = '  ' if not p or go else '>>'
         side_2 += f" {list_to_str(self.state['board'][1], space)}"
         t = max(-s, 0)
         t = f"({t})" if t else '(.)'
-        side_2 += f"  {t}   "
+        side_2 += f"  {t:>4}   "
 
         suffix = ' '
         if go:
@@ -89,14 +93,15 @@ class Game:
         barn_1, barn_2 = self.get_barns()
         return barn_1 - barn_2 - Game.handicap
 
-    def get_abstract_state(self) -> np.ndarray:
+    def get_state_representation(self) -> np.ndarray:
         """
         return an array-type object that describes the board state from the player's point of view
+        abstract state gets passed to agent
         features:
         - current player
         - pieces etc...
         """
-        return abstract_state(self.get_player(), self.get_points(), self.state.get_board(), Game.max_size)
+        return abstract_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)
 
     def get_legal_moves(self) -> np.ndarray:
         """
@@ -126,7 +131,7 @@ class Game:
         p = self.get_player()
         n = self.get_board()[p][move]
         if not n:
-            raise ValueError('Illegal move')
+            raise ValueError(f'Illegal move ({move})')
         self.state['board'][p][move] = 0
         on_board = False
         side = 0
@@ -141,12 +146,15 @@ class Game:
             self.state['player'] = 1 - p
             self.state['round'] += 1
 
-    def play(self):
+    def play(self, show=False):
         """perform a game start to finish, return outcome"""
+        if show:
+            print(self)
         while not self.is_game_over():
             p = self.state['player']
             agent = self.agents[p]
-            s = self.get_abstract_state()
-            move = agent(s)
+            move = agent(self)
             self.make_move(move)
+            if show:
+                print(self)
         return self.get_game_result()
