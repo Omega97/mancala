@@ -34,17 +34,13 @@ class Game:
     handicap = 6    # black starts the game with this many points
     max_size = 18   # numbers higher than this are not distinguished
 
-    def __init__(self, agents):
-        """
-
-        :param agents: list of agents; an agent takes as input
-        """
-        self.agents = agents
+    def __init__(self):
         self.state = None
-        self.init_board()
 
     def __repr__(self, space=2):
-        p = self.state['player']
+        if self.state is None:
+            return 'Game()'
+        p = self.get_player()
         go = self.is_game_over()
         s = self.get_points()
 
@@ -127,6 +123,8 @@ class Game:
             return int(self.get_points() > 0)
 
     def make_move(self, move: int):
+        if self.state is None:
+            self.init_board()
         move %= self.board_size
         p = self.get_player()
         n = self.get_board()[p][move]
@@ -146,14 +144,17 @@ class Game:
             self.state['player'] = 1 - p
             self.state['round'] += 1
 
-    def play(self, show=False):
-        """perform a game start to finish, return outcome"""
+    def play(self, agents, show=False):
+        """perform a game start to finish, return outcome
+        :param agents: list of agents; an agent takes as input
+        :param show: print game to console
+        """
+        self.init_board()
         if show:
             print(self)
         while not self.is_game_over():
             p = self.state['player']
-            agent = self.agents[p]
-            move = agent(self)
+            move = agents[p](self)
             self.make_move(move)
             if show:
                 print(self)
