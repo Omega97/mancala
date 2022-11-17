@@ -11,10 +11,11 @@ game over, black won by +2 points
  12)        .  .  .  .  .  .  (.)       .  1  1  .  .  .  (2)    b +2
 
 """
+import numpy as np
 try:
-    from misc import *
+    from misc import abstract_binary_vector_state, list_to_str, special_iter
 except ImportError:
-    from .misc import *
+    from .misc import abstract_binary_vector_state, list_to_str, special_iter
 
 
 class Game:
@@ -95,7 +96,7 @@ class Game:
         - current player
         - pieces etc...
         """
-        return abstract_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)
+        return abstract_binary_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)
 
     def get_legal_moves(self) -> np.ndarray:
         """
@@ -142,7 +143,7 @@ class Game:
             self.state['player'] = 1 - p
             self.state['round'] += 1
 
-    def play(self, agents, show=False, record_moves=False):
+    def play(self, agents, show=False, history=False):
         """perform a game start to finish, return outcome
         :param agents: list of agents; an agent takes as input
         :param show: print game to console
@@ -154,7 +155,7 @@ class Game:
         while not self.is_game_over():
             p = self.state['player']
             move = agents[p](self)
-            if record_moves:
+            if history:
                 self.history += [(p, self.get_state_representation(), move)]
             self.make_move(move)
             if show:
