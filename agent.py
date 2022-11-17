@@ -9,6 +9,7 @@ legal    1 2 3 4 5 6                        (6)
 move     n                                  (int)
 
 """
+import numpy as np
 from numpy import ndarray
 try:
     from game import Game
@@ -55,8 +56,8 @@ class Agent:
          * input_state.get_state_representation()
         :return:
         """
-        legal = input_state.get_legal_moves()
         s = input_state.get_state_representation()
+        legal = input_state.get_legal_moves()
         return self.get_clean_function_output(s, legal)
 
     def __call__(self, input_state: Game) -> int:
@@ -71,8 +72,24 @@ class Agent:
 
 
 class RandomAgent(Agent):
+    """ This bot plays random moves """
+
     def __init__(self):
         super().__init__(function=None)
 
     def __call__(self, input_state: Game) -> int:
         return choose(input_state.get_legal_moves())[0]
+
+
+def fun(mat):
+    out = np.array(list(range(1, 7))) * .1
+    for i in range(6):
+        out[i] += mat[6-i, i+1] * (i + 2)
+    return out
+
+
+class BetterAgent(Agent):
+    """ Very simple hand-crafted bot that plays decently """
+    def __call__(self, input_state: Game) -> int:
+        v = self.compute_output(input_state)
+        return int(np.argmax(v))

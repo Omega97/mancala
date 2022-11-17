@@ -20,14 +20,10 @@ except ImportError:
 class Game:
     """
     This class describes the game
-
     State: action vector -> new state
-
     white = first
     black = second
-
     To win: white needs to have pore points than black to win
-
     """
     board_size = 6
     starting_stones = 4
@@ -36,6 +32,8 @@ class Game:
 
     def __init__(self):
         self.state = None
+        self.history = []   # lit of (player, state_repr, move)
+        self.init_board()
 
     def __repr__(self, space=2):
         if self.state is None:
@@ -68,7 +66,7 @@ class Game:
     def init_board(self):
         """setup the initial board state"""
         board = np.ones((2, Game.board_size), dtype=int) * Game.starting_stones
-
+        self.history.clear()
         self.state = {'board': board,
                       'barns': np.zeros(2, dtype=int),
                       'player': 0,
@@ -97,7 +95,7 @@ class Game:
         - current player
         - pieces etc...
         """
-        return abstract_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)
+        return abstract_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)
 
     def get_legal_moves(self) -> np.ndarray:
         """
@@ -144,10 +142,11 @@ class Game:
             self.state['player'] = 1 - p
             self.state['round'] += 1
 
-    def play(self, agents, show=False):
+    def play(self, agents, show=False, record_moves=False):
         """perform a game start to finish, return outcome
         :param agents: list of agents; an agent takes as input
         :param show: print game to console
+        :param record_moves: if True, moves are saved along the board states and players
         """
         self.init_board()
         if show:
@@ -155,6 +154,8 @@ class Game:
         while not self.is_game_over():
             p = self.state['player']
             move = agents[p](self)
+            if record_moves:
+                self.history += [(p, self.get_state_representation(), move)]
             self.make_move(move)
             if show:
                 print(self)
