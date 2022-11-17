@@ -24,7 +24,7 @@ class Game:
     State: action vector -> new state
     white = first
     black = second
-    To win: white needs to have pore points than black to win
+    To win: white needs to have more points than black to win
     """
     board_size = 6
     starting_stones = 4
@@ -121,6 +121,9 @@ class Game:
         if self.is_game_over():
             return int(self.get_points() > 0)
 
+    def get_history(self, player):
+        return [(p, v, m) for p, v, m in self.history if p == player]
+
     def make_move(self, move: int):
         if self.state is None:
             self.init_board()
@@ -147,7 +150,7 @@ class Game:
         """perform a game start to finish, return outcome
         :param agents: list of agents; an agent takes as input
         :param show: print game to console
-        :param record_moves: if True, moves are saved along the board states and players
+        :param history: if True, moves are saved along the board states and players
         """
         self.init_board()
         if show:
