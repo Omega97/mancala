@@ -24,6 +24,13 @@ def list_to_str(v, space=2):
     return ' '.join([f'{i if i else ".":>{space}}' for i in v])
 
 
+def build_binary_vector(n, max_size):
+    """convert array to one-hot binary matrix of limited size"""
+    v = np.zeros(max_size+1, dtype=int)
+    v[n] = 1
+    return v
+
+
 def build_binary_matrix(v, max_size):
     """convert array to one-hot binary matrix of limited size"""
     mat = np.zeros((max_size+1, len(v)), dtype=int)
@@ -32,7 +39,7 @@ def build_binary_matrix(v, max_size):
     return mat
 
 
-def abstract_state(player, points, board, max_size):
+def abstract_vector_state(player, points, board, max_size):
     w = [points, 1-points]
     v = np.array([player], dtype=int)
     v = np.append(v, board[player])
@@ -40,7 +47,22 @@ def abstract_state(player, points, board, max_size):
     v = np.append(v, board[1-player])
     v = np.append(v, w[1-player])
     v = v.clip(0, max_size)
+    return v
+
+
+def abstract_binary_matrix_state(player, points, board, max_size):
+    v = abstract_vector_state(player, points, board, max_size)
     return build_binary_matrix(v, max_size)
+
+
+def abstract_binary_vector_state(player, points, board, max_size):
+    """all information of state encoded in binary vector"""
+    v = abstract_vector_state(player, points, board, max_size)
+    out = build_binary_vector(v[0], 1)
+    for i in v[1:]:
+        w = build_binary_vector(i, max_size)
+        out = np.append(out, w)
+    return out
 
 
 def choose(v, n=1) -> np.ndarray:
