@@ -122,7 +122,7 @@ class Game:
             return int(self.get_points() > 0)
 
     def get_history(self, player):
-        return [(p, v, m) for p, v, m in self.history if p == player]
+        return [(v, m) for p, v, m in self.history if p == player]
 
     def make_move(self, move: int):
         if self.state is None:
