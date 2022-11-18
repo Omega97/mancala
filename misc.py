@@ -40,7 +40,7 @@ def build_binary_matrix(v, max_size):
 
 
 def abstract_vector_state(player, points, board, max_size):
-    w = [points, 1-points]
+    w = [points, -points]
     v = np.array([player], dtype=int)
     v = np.append(v, board[player])
     v = np.append(v, w[player])
