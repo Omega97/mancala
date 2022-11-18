@@ -1,15 +1,9 @@
-try:
-    from game import Game
-except ImportError:
-    from game import Game
 
-
-def performance(agents, n_games):
+def performance(agents, game, n_games):
 
     n_wins = 0
 
-    for j in range(n_games):
-        game = Game()
+    for j in range(n_games):        
         p = j % 2
         result = game.play([agents[p], agents[1-p]])
         if p:
