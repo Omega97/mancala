@@ -28,7 +28,7 @@ class Agent:
     Agent: state vector -> action vector
 
     """
-    def __init__(self, function):
+    def __init__(self, function=None):
         """
 
         :param function: neural network, callable,
@@ -67,16 +67,13 @@ class Agent:
         :param input_state:
         :return: move
         """
+        assert self.function is not None
         v = self.compute_output(input_state)
         return choose(v)[0]
 
 
 class RandomAgent(Agent):
     """ This bot plays random moves """
-
-    def __init__(self):
-        super().__init__(function=None)
-
     def __call__(self, input_state: Game) -> int:
         return choose(input_state.get_legal_moves())[0]
 
@@ -84,12 +81,22 @@ class RandomAgent(Agent):
 def fun(mat):
     out = np.array(list(range(1, 7))) * .1
     for i in range(6):
-        out[i] += mat[6-i, i+1] * (i + 2)
+        out[i] += mat[Game.board_size - i, i + 1] * (i + 2)
     return out
 
 
-class BetterAgent(Agent):
+class SimpleAgent(Agent):
     """ Very simple hand-crafted bot that plays decently """
+    def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
+        out = np.array(list(range(1, Game.board_size + 1)))
+
+        for i in range(6):
+            j = 2 + Game.board_size-i + i * (Game.max_size+1)
+
+            out[i] += state_repr[j] * (Game.board_size + 1)
+
+        return out * legal_moves
+
     def __call__(self, input_state: Game) -> int:
         v = self.compute_output(input_state)
         return int(np.argmax(v))
