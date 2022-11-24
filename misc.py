@@ -2,7 +2,7 @@ import numpy as np
 
 
 def special_iter(player, index, n, size):
-    """"""
+    """iterable used when making move on board """
     assert player in (0, 1)
     t_skip = (True, player, index)
     on_board = True
@@ -18,6 +18,25 @@ def special_iter(player, index, n, size):
         out = (on_board, player, index)
         if out != t_skip:
             yield out
+
+
+def board_repr(p, go, s, board, result, space, n_round):
+    prefix = f"{n_round//2+1:3})" + ' ' * 4
+    side_1 = '  ' if p or go else '>>'
+    side_1 += f" {list_to_str(board[0], space)}"
+    t = max(s, 0)
+    t = f"({t})" if t else '(.)'
+    side_1 += f"  {t:>4}   "
+    side_2 = '  ' if not p or go else '>>'
+    side_2 += f" {list_to_str(board[1], space)}"
+    t = max(-s, 0)
+    t = f"({t})" if t else '(.)'
+    side_2 += f"  {t:>4}   "
+    suffix = ' '
+    if go:
+        suffix += 'w' if result else 'b'
+        suffix += f" +{abs(s)}"
+    return prefix + side_1 + side_2 + suffix
 
 
 def list_to_str(v, space=2):
@@ -40,6 +59,7 @@ def build_binary_matrix(v, max_size):
 
 
 def abstract_vector_state(player, points, board, max_size):
+    """ represent game state as list of numbers """
     w = [points, -points]
     v = np.array([player], dtype=int)
     v = np.append(v, board[player])
@@ -65,14 +85,17 @@ def abstract_binary_vector_state(player, points, board, max_size):
     return out
 
 
-def choose(v, n=1) -> np.ndarray:
+def choose(v) -> int:
     """
     choose random array index given probability distribution
     :param v: array
-    :param n: number of output samples
     :return:
     """
     s = sum(v)
     if not s:
         raise ValueError('Sum cannot be 0')
-    return np.random.choice(len(v), n, p=v/s)
+    return np.random.choice(len(v), 1, p=v/s)[0]
+
+
+def argmax(v) -> int:
+    return int(np.argmax(v))

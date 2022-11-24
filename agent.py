@@ -1,7 +1,6 @@
 """
-Use neural networks to get value and/or policy
-Maybe add tree-search
-
+The Agent is the object that plays the game.
+Build an agent using a neural network and train it on games of self.play to perform self-RL.
 
 state    p 1 2 3 4 5 6 # 1 2 3 4 5 6 #      (15)
 output   1 2 3 4 5 6 v                      (7)
@@ -69,13 +68,13 @@ class Agent:
         """
         assert self.function is not None
         v = self.compute_output(input_state)
-        return choose(v)[0]
+        return choose(v)
 
 
 class RandomAgent(Agent):
     """ This bot plays random moves """
     def __call__(self, input_state: Game) -> int:
-        return choose(input_state.get_legal_moves())[0]
+        return choose(input_state.get_legal_moves())
 
 
 def fun(mat):
@@ -86,15 +85,18 @@ def fun(mat):
 
 
 class SimpleAgent(Agent):
-    """ Very simple hand-crafted bot that plays decently """
+    """
+    Very simple hand-crafted bot that plays decently
+    warning: deterministic!
+    looks for exact matches, then prioritizes the rightmost squares
+    """
     def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
+        # not exact matches
         out = np.array(list(range(1, Game.board_size + 1)))
-
+        # exact matches
         for i in range(6):
             j = 2 + Game.board_size-i + i * (Game.max_size+1)
-
-            out[i] += state_repr[j] * (Game.board_size + 1)
-
+            out[i] += state_repr[j] * Game.board_size * 4
         return out * legal_moves
 
     def __call__(self, input_state: Game) -> int:

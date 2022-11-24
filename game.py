@@ -122,7 +122,17 @@ class Game:
             return int(self.get_points() > 0)
 
     def get_history(self, player):
-        return [(v, m) for p, v, m in self.history if p == player]
+        return [(i, m, v) for i, p, m, v in self.history if p == player]
+
+    def _distribute_stone(self, player, move, n_stones):
+        on_board = False
+        side = 0
+        for on_board, side, index in special_iter(player, move, n_stones, Game.board_size):
+            if on_board:
+                self.state['board'][side][index] += 1
+            else:
+                self.state['barns'][side] += 1
+        return on_board, side
 
     def make_move(self, move: int):
         if self.state is None:
@@ -133,18 +143,14 @@ class Game:
         if not n:
             raise ValueError(f'Illegal move ({move})')
         self.state['board'][p][move] = 0
-        on_board = False
-        side = 0
-        for on_board, side, index in special_iter(p, move, n, Game.board_size):
-            if on_board:
-                self.state['board'][side][index] += 1
-            else:
-                self.state['barns'][side] += 1
-
+        on_board, side = self._distribute_stone(p, move, n)
         self.state['ply'] += 1
         if on_board or side != p:
             self.state['player'] = 1 - p
             self.state['round'] += 1
+
+    def _update_history(self, player, move):
+        self.history += [(self.state['ply'], player, move, self.get_state_representation())]
 
     def play(self, agents, show=False, history=False):
         """perform a game start to finish, return outcome
@@ -156,10 +162,10 @@ class Game:
         if show:
             print(self)
         while not self.is_game_over():
-            p = self.state['player']
+            p = self.get_player()
             move = agents[p](self)
             if history:
-                self.history += [(p, self.get_state_representation(), move)]
+                self._update_history(p, move)
             self.make_move(move)
             if show:
                 print(self)
