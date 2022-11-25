@@ -12,10 +12,10 @@ import numpy as np
 from numpy import ndarray
 try:
     from game import Game
-    from misc import choose
+    from misc import choose, argmax
 except ImportError:
     from .game import Game
-    from .misc import choose
+    from .misc import choose, argmax
 
 
 class Agent:
@@ -77,28 +77,27 @@ class RandomAgent(Agent):
         return choose(input_state.get_legal_moves())
 
 
-def fun(mat):
-    out = np.array(list(range(1, 7))) * .1
-    for i in range(6):
-        out[i] += mat[Game.board_size - i, i + 1] * (i + 2)
-    return out
-
-
 class SimpleAgent(Agent):
     """
     Very simple hand-crafted bot that plays decently
     warning: deterministic!
     looks for exact matches, then prioritizes the rightmost squares
     """
+    def __init__(self, n_random_ply=0):
+        super().__init__()
+        self.n_random_ply = n_random_ply
+
     def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
         # not exact matches
         out = np.array(list(range(1, Game.board_size + 1)))
         # exact matches
-        for i in range(6):
-            j = 2 + Game.board_size-i + i * (Game.max_size+1)
+        for i in range(Game.board_size):
+            j = 2 + Game.board_size + i * Game.max_size
             out[i] += state_repr[j] * Game.board_size * 4
         return out * legal_moves
 
     def __call__(self, input_state: Game) -> int:
+        if input_state.state['ply'] < self.n_random_ply:
+            return choose(input_state.get_legal_moves())
         v = self.compute_output(input_state)
-        return int(np.argmax(v))
+        return argmax(v)
