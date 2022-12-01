@@ -28,12 +28,12 @@ class Game:
     """
     board_size = 6
     starting_stones = 4
-    handicap = 6    # black starts the game with this many points
+    handicap = 0    # black starts the game with this many points
     max_size = 18   # numbers higher than this are not distinguished
 
     def __init__(self):
         self.state = None
-        self.history = []   # lit of (player, state_repr, move)
+        self.history = []   # lit of (ply, player, move, legal_moves, state_repr)
         self.init_board()
 
     def __repr__(self, space=2):
@@ -107,6 +107,9 @@ class Game:
         v = self.get_board()[p]
         return v.clip(0, 1)
 
+    def get_ply(self):
+        return self.state['ply']
+
     def is_game_over(self):
         p = self.get_player()
         board = self.get_board()[p]
@@ -120,9 +123,6 @@ class Game:
         """
         if self.is_game_over():
             return int(self.get_points() > 0)
-
-    def get_history(self, player):
-        return [(i, m, v) for i, p, m, v in self.history if p == player]
 
     def _distribute_stone(self, player, move, n_stones):
         on_board = False
@@ -150,15 +150,20 @@ class Game:
             self.state['round'] += 1
 
     def _update_history(self, player, move):
-        self.history += [(self.state['ply'], player, move, self.get_state_representation())]
+        self.history += [(self.get_ply(), player, move, self.get_legal_moves(), self.get_state_representation())]
 
-    def play(self, agents, show=False, history=False):
+    def get_history(self, player):
+        return [(i, m, v) for i, p, m, v in self.history if p == player]
+
+    def play(self, agents, show=False, history=False, reset_board=True):
         """perform a game start to finish, return outcome
         :param agents: list of agents; an agent takes as input
         :param show: print game to console
         :param history: if True, moves are saved along the board states and players
+        :param reset_board: if True resets game state
         """
-        self.init_board()
+        if reset_board:
+            self.init_board()
         if show:
             print(self)
         while not self.is_game_over():
