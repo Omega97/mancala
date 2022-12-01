@@ -153,7 +153,7 @@ class Game:
         self.history += [(self.get_ply(), player, move, self.get_legal_moves(), self.get_state_representation())]
 
     def get_history(self, player):
-        return [(i, m, v) for i, p, m, v in self.history if p == player]
+        return [(i, m, legal, state) for i, p, m, legal, state in self.history if p == player]
 
     def play(self, agents, show=False, history=False, reset_board=True):
         """perform a game start to finish, return outcome
