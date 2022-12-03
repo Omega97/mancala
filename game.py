@@ -33,7 +33,7 @@ class Game:
 
     def __init__(self):
         self.state = None
-        self.history = []   # lit of (ply, player, move, legal_moves, state_repr)
+        self.history = []   # list of dicts (ply, player, move, legal_moves, state_repr)
         self.init_board()
 
     def __repr__(self, space=2):
@@ -72,7 +72,7 @@ class Game:
                       'barns': np.zeros(2, dtype=int),
                       'player': 0,
                       'round': 0,
-                      'ply': 0}
+                      'ply': 0}     # start from 0
 
     def get_player(self):
         return self.state['player']
@@ -88,7 +88,7 @@ class Game:
         barn_1, barn_2 = self.get_barns()
         return barn_1 - barn_2 - Game.handicap
 
-    def get_state_representation(self) -> np.ndarray:
+    def get_abstract_state(self) -> np.ndarray:
         """
         return an array-type object that describes the board state from the player's point of view
         abstract state gets passed to agent
@@ -134,7 +134,18 @@ class Game:
                 self.state['barns'][side] += 1
         return on_board, side
 
-    def make_move(self, move: int):
+    def make_move(self, move: int, player=None):
+        """
+        Make move on the board
+        If player is specified then the move is saved to the game history
+        :param move:
+        :param player:
+        :return:
+        """
+        # save move
+        if player is not None:
+            self._update_history(player, move)
+        # move stones
         if self.state is None:
             self.init_board()
         move %= self.board_size
@@ -150,10 +161,17 @@ class Game:
             self.state['round'] += 1
 
     def _update_history(self, player, move):
-        self.history += [(self.get_ply(), player, move, self.get_legal_moves(), self.get_state_representation())]
+        self.history += [{'ply': self.get_ply(),
+                          'player': player,
+                          'move': move,
+                          'legal_moves': self.get_legal_moves(),
+                          'state_repr': str(self),
+                          'state': self.get_abstract_state(),
+                          }
+                         ]
 
     def get_history(self, player):
-        return [(i, m, legal, state) for i, p, m, legal, state in self.history if p == player]
+        return [dct for dct in self.history if dct['player'] == player]
 
     def play(self, agents, show=False, history=False, reset_board=True):
         """perform a game start to finish, return outcome
@@ -169,9 +187,7 @@ class Game:
         while not self.is_game_over():
             p = self.get_player()
             move = agents[p](self)
-            if history:
-                self._update_history(p, move)
-            self.make_move(move)
+            self.make_move(move, p if history else None)
             if show:
                 print(self)
         return self.get_game_result()
