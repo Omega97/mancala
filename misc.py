@@ -75,10 +75,12 @@ def abstract_binary_matrix_state(player, points, board, max_size):
     return build_binary_matrix(v, max_size)
 
 
-def abstract_binary_vector_state(player, points, board, max_size):
-    """all information of state encoded in binary vector"""
+def abstract_binary_vector_state(player, points, board, legal, max_size):
+    """all information of state encoded in binary vector
+    returns: binary array encoding the state"""
     v = abstract_vector_state(player, points, board, max_size)
     out = build_binary_vector(v[0], 1)
+    out = np.append(out, legal)
     for i in v[1:]:
         w = build_binary_vector(i, max_size)
         out = np.append(out, w)
