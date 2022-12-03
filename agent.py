@@ -55,26 +55,26 @@ class Agent:
          * input_state.get_state_representation()
         :return:
         """
-        s = input_state.get_state_representation()
+        s = input_state.get_abstract_state()
         legal = input_state.get_legal_moves()
         return self.get_clean_function_output(s, legal)
 
     def __call__(self, input_state: Game) -> int:
         """
+        Pick move
         Takes as input the state, returns legal move, choose or argmax on .compute_output()
 
         :param input_state:
         :return: move
         """
-        assert self.function is not None
         v = self.compute_output(input_state)
         return choose(v)
 
 
 class RandomAgent(Agent):
     """ This bot plays random moves """
-    def __call__(self, input_state: Game) -> int:
-        return choose(input_state.get_legal_moves())
+    def compute_output(self, input_state):
+        return input_state.get_legal_moves()
 
 
 class SimpleAgent(Agent):
@@ -83,18 +83,38 @@ class SimpleAgent(Agent):
     warning: deterministic!
     looks for exact matches, then prioritizes the rightmost squares
     """
+    def __init__(self):
+        super().__init__()
+        self.max_size = Game.max_size
+        self.board_size = Game.board_size
+        self.biases = None
+        self.weights = None
+        self._set_parameters()
+
+    def _set_parameters(self):
+        input_size = 2 + (Game.max_size + 1) * (Game.board_size + 1) * 2
+        self.biases = np.array(list(range(1, self.board_size + 1)), dtype=float)
+        self.weights = np.zeros((6, input_size), dtype=float)
+        for i in range(self.board_size):
+            j = 2 + self.board_size + i * self.max_size
+            self.weights[i, j] = self.board_size * 4
+
+    def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
+        return legal_moves * (self.biases + self.weights.dot(state_repr))
+
+    def __call__(self, input_state: Game) -> int:
+        return argmax(self.compute_output(input_state))
+
+
+class SimpleNoisyAgent(SimpleAgent):
+    """
+    Very simple hand-crafted bot that plays decently
+    First moves are random
+    looks for exact matches, then prioritizes the rightmost squares
+    """
     def __init__(self, n_random_ply=0):
         super().__init__()
         self.n_random_ply = n_random_ply
-
-    def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
-        # not exact matches
-        out = np.array(list(range(1, Game.board_size + 1)))
-        # exact matches
-        for i in range(Game.board_size):
-            j = 2 + Game.board_size + i * Game.max_size
-            out[i] += state_repr[j] * Game.board_size * 4
-        return out * legal_moves
 
     def __call__(self, input_state: Game) -> int:
         if input_state.state['ply'] < self.n_random_ply:
