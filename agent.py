@@ -83,16 +83,16 @@ class SimpleAgent(Agent):
     warning: deterministic!
     looks for exact matches, then prioritizes the rightmost squares
     """
-    def __init__(self):
+    def __init__(self, max_size=Game.max_size, board_size=Game.board_size):
         super().__init__()
-        self.max_size = Game.max_size
-        self.board_size = Game.board_size
+        self.max_size = max_size
+        self.board_size = board_size
         self.biases = None
         self.weights = None
         self._set_parameters()
 
     def _set_parameters(self):
-        input_size = 4 + 3 * Game.board_size + 2 * (Game.max_size + Game.max_size * Game.board_size)
+        input_size = 4 + 3 * self.board_size + 2 * (self.max_size + self.max_size * self.board_size)
         self.biases = np.array(list(range(1, self.board_size + 1)), dtype=float)
         self.weights = np.zeros((6, input_size), dtype=float)
         for i in range(self.board_size):
@@ -112,8 +112,8 @@ class SimpleNoisyAgent(SimpleAgent):
     First moves are random
     looks for exact matches, then prioritizes the rightmost squares
     """
-    def __init__(self, n_random_ply=0):
-        super().__init__()
+    def __init__(self, max_size, board_size, n_random_ply=0):
+        super().__init__(max_size, board_size)
         self.n_random_ply = n_random_ply
 
     def __call__(self, input_state: Game) -> int:
