@@ -33,7 +33,7 @@ class Game:
 
     def __init__(self):
         self.state = None
-        self.history = []   # list of dicts (ply, player, move, legal_moves, state_repr)
+        self.history = []   # list of dictionaries (ply, player, move, legal_moves, state_repr)
         self.init_board()
 
     def __repr__(self, space=2):
@@ -59,7 +59,7 @@ class Game:
 
         suffix = ' '
         if go:
-            suffix += 'w' if self.get_game_result() else 'b'
+            suffix += 'w' if self.result()[0] else 'b'
             suffix += f" +{abs(s)}"
 
         return prefix + side_1 + side_2 + suffix
@@ -88,15 +88,26 @@ class Game:
         barn_1, barn_2 = self.get_barns()
         return barn_1 - barn_2 - Game.handicap
 
-    def get_abstract_state(self) -> np.ndarray:
+    def abstract_representation(self) -> np.ndarray:
         """
-        return an array-type object that describes the board state from the player's point of view
-        abstract state gets passed to agent
-        features:
-        - current player
-        - pieces etc...
+        returns: binary array that describes the board state from the player's point of view
+        abstract state gets passed as input to agent
+
+        output features:
+        - current player (len = 2)
+        - legal moves (len = Game.board_size)
+        - stones on board for current player (len = Game.board_size * (Game.max_size + 1))
+        - points for current player (len = (Game.max_size + 1))
+        - stones on board for opponent (len = Game.board_size * (Game.max_size + 1))
+        - points for opponent (len = (Game.max_size + 1))
+
+        total length = 2 + Game.board_size + 2 * ((Game.board_size + 1) * (Game.max_size + 1))
         """
-        return abstract_binary_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)
+        return abstract_binary_vector_state(self.get_player(),
+                                            self.get_points(),
+                                            self.get_board(),
+                                            self.get_legal_moves(),
+                                            Game.max_size)
 
     def get_legal_moves(self) -> np.ndarray:
         """
@@ -115,14 +126,13 @@ class Game:
         board = self.get_board()[p]
         return sum(board) == 0
 
-    def get_game_result(self):
+    def result(self) -> tuple:
         """
-        1 = white won
-        0 = black won
-        None if not game-over
+        returns: tuple of points, (1, 0) if white won, (0, 1) if black won, None if not game-over
         """
         if self.is_game_over():
-            return int(self.get_points() > 0)
+            x = int(self.get_points() > 0)
+            return x, 1-x
 
     def _distribute_stone(self, player, move, n_stones):
         on_board = False
@@ -166,7 +176,7 @@ class Game:
                           'move': move,
                           'legal_moves': self.get_legal_moves(),
                           'state_repr': str(self),
-                          'state': self.get_abstract_state(),
+                          'state': self.abstract_representation(),
                           }
                          ]
 
@@ -190,4 +200,3 @@ class Game:
             self.make_move(move, p if history else None)
             if show:
                 print(self)
-        return self.get_game_result()
