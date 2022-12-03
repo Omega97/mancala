@@ -13,9 +13,9 @@ game over, black won by +2 points
 """
 import numpy as np
 try:
-    from misc import abstract_binary_vector_state, list_to_str, special_iter
+    from misc import abstract_vector_state, list_to_str, special_iter
 except ImportError:
-    from .misc import abstract_binary_vector_state, list_to_str, special_iter
+    from .misc import abstract_vector_state, list_to_str, special_iter
 
 
 class Game:
@@ -95,19 +95,20 @@ class Game:
 
         output features:
         - current player (len = 2)
-        - legal moves (len = Game.board_size)
-        - stones on board for current player (len = Game.board_size * (Game.max_size + 1))
-        - points for current player (len = (Game.max_size + 1))
-        - stones on board for opponent (len = Game.board_size * (Game.max_size + 1))
-        - points for opponent (len = (Game.max_size + 1))
-
+        - illegal moves (1 for illegal, 0 for legal) (len = Game.board_size)
+        - which squares contain 0 stones (len = 2 * Game.board_size + 2)
+        - which squares contain 1 stone (len = 2 * Game.board_size + 2)
+        - ...
         total length = 2 + Game.board_size + 2 * ((Game.board_size + 1) * (Game.max_size + 1))
         """
-        return abstract_binary_vector_state(self.get_player(),
-                                            self.get_points(),
-                                            self.get_board(),
-                                            self.get_legal_moves(),
-                                            Game.max_size)
+        v = abstract_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)[1:]
+        p = self.get_player()
+        out = np.array([p, 1-p])
+        illegal = 1 - np.array(self.get_legal_moves())
+        out = np.append(out, illegal)
+        for i in range(Game.max_size + 1):
+            out = np.append(out, v == i)
+        return out
 
     def get_legal_moves(self) -> np.ndarray:
         """

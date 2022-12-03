@@ -95,9 +95,11 @@ class SimpleAgent(Agent):
         input_size = 4 + 3 * self.board_size + 2 * (self.max_size + self.max_size * self.board_size)
         self.biases = np.array(list(range(1, self.board_size + 1)), dtype=float)
         self.weights = np.zeros((6, input_size), dtype=float)
+        n = self.board_size + 1
+
         for i in range(self.board_size):
-            j = 2 + self.board_size * 2 + i * self.max_size
-            self.weights[i, j] = self.board_size * 4
+            j = (2 * n - 1) * self.board_size - 2 * n * (i-1) + i
+            self.weights[i, j] += self.board_size + i + 1
 
     def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
         return legal_moves * (self.biases + self.weights.dot(state_repr))
