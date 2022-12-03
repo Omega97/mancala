@@ -55,7 +55,7 @@ class Agent:
          * input_state.get_state_representation()
         :return:
         """
-        s = input_state.get_abstract_state()
+        s = input_state.abstract_representation()
         legal = input_state.get_legal_moves()
         return self.get_clean_function_output(s, legal)
 
@@ -92,11 +92,11 @@ class SimpleAgent(Agent):
         self._set_parameters()
 
     def _set_parameters(self):
-        input_size = 2 + (Game.max_size + 1) * (Game.board_size + 1) * 2
+        input_size = 4 + 3 * Game.board_size + 2 * (Game.max_size + Game.max_size * Game.board_size)
         self.biases = np.array(list(range(1, self.board_size + 1)), dtype=float)
         self.weights = np.zeros((6, input_size), dtype=float)
         for i in range(self.board_size):
-            j = 2 + self.board_size + i * self.max_size
+            j = 2 + self.board_size * 2 + i * self.max_size
             self.weights[i, j] = self.board_size * 4
 
     def get_clean_function_output(self, state_repr: ndarray, legal_moves: ndarray) -> ndarray:
