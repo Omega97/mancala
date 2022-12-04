@@ -93,19 +93,16 @@ class Game:
         Abstract state gets passed as input to agent
         Output features:
         - current player (len = 2)
-        - illegal moves (1 for illegal, 0 for legal) (len = Game.board_size)
         - which squares contain 0 stones (len = 2 * Game.board_size + 2)
         - which squares contain 1 stone (len = 2 * Game.board_size + 2)
         - ...
-        total length = 2 + Game.board_size + 2 * ((Game.board_size + 1) * (Game.max_size + 1))
+        total length = 2 * (1 + (1 + self.max_size) * (1 + self.board_size))
 
         returns: binary array that describes the board state from the player's point of view
         """
         v = abstract_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)[1:]
         p = self.get_player()
         out = np.array([p, 1-p])
-        illegal = 1 - np.array(self.get_legal_moves())
-        out = np.append(out, illegal)
         for i in range(Game.max_size + 1):
             out = np.append(out, v == i)
         return out
