@@ -87,7 +87,7 @@ class SimpleAgent(Agent):
     def _set_parameters(self):
         input_size = 1 + (3 + 2 * self.max_size) * (1 + self.board_size)
         self.biases = np.array(list(range(1, self.board_size + 1)), dtype=float)
-        self.weights = np.zeros((6, input_size), dtype=float)
+        self.weights = np.zeros((self.board_size, input_size), dtype=float)
         n = self.board_size + 1
         for i in range(self.board_size):
             j = (2 * n - 1) * self.board_size - 2 * n * (i-1) + i
