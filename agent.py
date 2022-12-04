@@ -1,12 +1,6 @@
 """
 The Agent is the object that plays the game.
 Build an agent using a neural network and train it on games of self.play to perform self-RL.
-
-state    p 1 2 3 4 5 6 # 1 2 3 4 5 6 #      (15)
-output   1 2 3 4 5 6 v                      (7)
-legal    1 2 3 4 5 6                        (6)
-move     n                                  (int)
-
 """
 import numpy as np
 from numpy import ndarray
@@ -29,7 +23,6 @@ class Agent:
     """
     def __init__(self, function=None):
         """
-
         :param function: neural network, callable,
         """
         self.function = function
@@ -92,11 +85,10 @@ class SimpleAgent(Agent):
         self._set_parameters()
 
     def _set_parameters(self):
-        input_size = 4 + 3 * self.board_size + 2 * (self.max_size + self.max_size * self.board_size)
+        input_size = 1 + (3 + 2 * self.max_size) * (1 + self.board_size)
         self.biases = np.array(list(range(1, self.board_size + 1)), dtype=float)
         self.weights = np.zeros((6, input_size), dtype=float)
         n = self.board_size + 1
-
         for i in range(self.board_size):
             j = (2 * n - 1) * self.board_size - 2 * n * (i-1) + i
             self.weights[i, j] += self.board_size + i + 1
@@ -114,7 +106,7 @@ class SimpleNoisyAgent(SimpleAgent):
     First moves are random
     looks for exact matches, then prioritizes the rightmost squares
     """
-    def __init__(self, max_size, board_size, n_random_ply=0):
+    def __init__(self, max_size=Game.max_size, board_size=Game.board_size, n_random_ply=0):
         super().__init__(max_size, board_size)
         self.n_random_ply = n_random_ply
 

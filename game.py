@@ -90,16 +90,16 @@ class Game:
 
     def abstract_representation(self) -> np.ndarray:
         """
-        returns: binary array that describes the board state from the player's point of view
-        abstract state gets passed as input to agent
-
-        output features:
+        Abstract state gets passed as input to agent
+        Output features:
         - current player (len = 2)
         - illegal moves (1 for illegal, 0 for legal) (len = Game.board_size)
         - which squares contain 0 stones (len = 2 * Game.board_size + 2)
         - which squares contain 1 stone (len = 2 * Game.board_size + 2)
         - ...
         total length = 2 + Game.board_size + 2 * ((Game.board_size + 1) * (Game.max_size + 1))
+
+        returns: binary array that describes the board state from the player's point of view
         """
         v = abstract_vector_state(self.get_player(), self.get_points(), self.get_board(), Game.max_size)[1:]
         p = self.get_player()
@@ -112,8 +112,10 @@ class Game:
 
     def get_legal_moves(self) -> np.ndarray:
         """
-        return an array-type object describing all the possible legal moves
+        Legal moves of the state
         There must be at least one legal move ()
+
+        :return: array-type object describing all the possible legal moves
         """
         p = self.get_player()
         v = self.get_board()[p]
@@ -129,6 +131,8 @@ class Game:
 
     def result(self) -> tuple:
         """
+        Result of the game
+
         returns: tuple of points, (1, 0) if white won, (0, 1) if black won, None if not game-over
         """
         if self.is_game_over():
@@ -136,6 +140,7 @@ class Game:
             return x, 1-x
 
     def _distribute_stone(self, player, move, n_stones):
+        """take stones from a square and distribute them to the subsequent squares"""
         on_board = False
         side = 0
         for on_board, side, index in special_iter(player, move, n_stones, Game.board_size):
@@ -172,6 +177,7 @@ class Game:
             self.state['round'] += 1
 
     def _update_history(self, player, move):
+        """add data point to history"""
         self.history += [{'ply': self.get_ply(),
                           'player': player,
                           'move': move,
@@ -182,6 +188,7 @@ class Game:
                          ]
 
     def get_history(self, player):
+        """returns the part of the history of the game where a specific player had to move"""
         return [dct for dct in self.history if dct['player'] == player]
 
     def play(self, agents, show=False, history=False, reset_board=True):
